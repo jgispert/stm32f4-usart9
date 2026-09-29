@@ -1,0 +1,19 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Configuración local de cada puesto (serial ST-Link, puertos)
+platformio_local.ini
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Capturas en bruto del sniffer (grandes) — las fichas .md sí se versionan
+docs/test-log/raw/

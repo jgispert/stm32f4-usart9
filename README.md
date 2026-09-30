@@ -7,7 +7,7 @@ Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (US
 
 ## Principios
 
-- Sólo depende de CMSIS (`stm32f4xx.h`) y de `HAL_RCC_GetPCLKxFreq()`.
+- Sólo depende de CMSIS (`stm32f4xx.h`, `SystemCoreClock`, `APBPrescTable`). No usa la HAL.
 - No usa nada de Arduino: ni `Serial`, ni `pinMode`, ni `delay`.
 - No sabe nada de RS-485 (pin DE), MDB (checksum) ni USB. Esas capas van por encima.
 - Una instancia activa por firmware. Todo se configura con una struct: no hay pines fijos en el código.

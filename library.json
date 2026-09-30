@@ -1,10 +1,13 @@
 {
   "name": "stm32f4-usart9",
-  "version": "0.0.0",
-  "description": "USART de 9 bits a nivel de registro para STM32F4 (USART1/2/6). Sin dependencias de Arduino, RS-485 ni USB.",
+  "version": "0.1.0",
+  "description": "USART de 9 bits a nivel de registro para STM32F4 (USART1/2/6). Sólo CMSIS: sin Arduino, HAL, RS-485 ni USB.",
   "keywords": ["stm32", "stm32f4", "usart", "9bit", "mdb", "rs485"],
-  "authors": [{ "name": "TPC NetGrup" }],
+  "authors": [{ "name": "Joan Gispert", "url": "https://github.com/jgispert" }],
+  "repository": { "type": "git", "url": "https://github.com/jgispert/stm32f4-usart9.git" },
   "frameworks": ["arduino", "stm32cube"],
   "platforms": ["ststm32"],
-  "build": { "srcDir": "src" }
+  "headers": "Usart9.h",
+  "build": { "srcDir": "src" },
+  "export": { "exclude": ["examples"] }
 }

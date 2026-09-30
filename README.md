@@ -3,7 +3,7 @@
 USART de **9 bits de datos** a nivel de registro para **STM32F4** (probado en F411CEU6 Black Pill).
 Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (USART1).
 
-> Estado: **v0.0.0, sin código aún.** La primera versión funcional (v0.1.0) se crea en la Fase 0.5 de VENDO_SLAVE_RS485.
+> Estado: **v0.1.0**. Configuración y transmisión. En validación en la fase 0.5 de VENDO_SLAVE_RS485.
 
 ## Principios
 
@@ -23,45 +23,53 @@ Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (US
 
 \* En la Black Pill, PA11/PA12 (la otra opción de USART6) están ocupados por el USB. PC6/PC7 no salen al conector del F411CEU6 (encapsulado UFQFPN48), así que USART6 no es utilizable en esta placa.
 
-## API prevista (borrador; se cierra en v0.1.0)
+## API (v0.1.0)
 
 ```cpp
-struct Usart9Config {
-    USART_TypeDef* instance;   // USART1 | USART2 | USART6
-    GPIO_TypeDef*  port;       // GPIOA ...
-    uint8_t        txPin;      // 2
-    uint8_t        rxPin;      // 3
-    uint8_t        af;         // 7
-    uint32_t       baud;       // 19200
-    bool           rxPullUp;   // true recomendado con transceptor half-duplex
+#include <Usart9.h>
+
+static Usart9 bus;
+static const Usart9Config CFG = {
+    USART2,   // instance: USART1 | USART2 | USART6
+    GPIOA,    // port (TX y RX en el mismo puerto)
+    2, 3,     // txPin, rxPin
+    7,        // af
+    19200,    // baud
+    false     // rxPullUp
 };
 
-// Palabra de 16 bits: [7:0] DATA · [8] D8 · [12] FE · [13] NE · [14] ORE
-class Usart9 {
-public:
-    bool     begin(const Usart9Config& cfg);   // APB1/APB2 automático
-    void     end();
-    uint32_t pclkHz() const;  uint32_t brr() const;
+if (bus.begin(CFG) != Usart9Status::Ok) { /* parámetros no válidos */ }
 
-    void     writeWord(uint16_t w);            // espera TXE
-    void     waitTxComplete();                 // espera TC
+bus.writeWord(Usart9::makeWord(0x20, true));   // 0x120: dato 0x20 con bit 9
+bus.writeWord(0x003);                          // dato 0x03 sin bit 9
+bus.waitTxComplete();                          // stop bit del último carácter fuera
 
-    // v0.2.0 — polling
-    bool     rxAvailable() const;
-    uint16_t readWord();
-    void     flushRx();                        // SR → DR (limpieza F4)
-
-    // v0.3.0 — interrupciones
-    void     enableRxIrq(uint16_t* ring, uint16_t size);
-    void     onTxComplete(void (*cb)(void));
-};
+bus.pclkHz();  bus.brr();  bus.baud();         // diagnóstico
 ```
+
+| Función | Descripción |
+|---|---|
+| `begin(cfg)` | Reloj GPIO + USART, pines en AF, 9 bits, sin paridad, 1 stop, x16. Devuelve `Usart9Status` |
+| `end()` | Deshabilita la USART y su reloj |
+| `writeWord(w)` | Espera TXE y escribe los 9 bits bajos de `w` |
+| `waitTxComplete()` | Espera TC: el último carácter, stop incluido, ha salido |
+| `makeWord(data, bit9)` | Compone la palabra de 9 bits |
+| `pclkHz()`, `brr()`, `baud()` | Valores efectivos para diagnóstico |
+
+El reloj del bus se calcula igual que `HAL_RCC_GetPCLKxFreq()` (`SystemCoreClock >> APBPrescTable[PPREx]`), sin depender de la HAL.
+
+### Previsto
+
+- v0.2.0: `rxAvailable()`, `readWord()` con flags FE/NE/ORE en la palabra, `flushRx()`.
+- v0.3.0: RX por interrupción con ring buffer y callback de TC.
+
+Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 
 ## Versiones previstas
 
 | Versión | Contenido | Fase VENDO |
 |---|---|---|
-| v0.1.0 | begin / TX | 0.5 |
+| v0.1.0 | begin / TX (**actual**) | 0.5 |
 | v0.2.0 | RX por polling + flags de error | 1 |
 | v0.3.0 | RX por ISR + callback de TC | 7 |
 | v1.0.0 | Estable tras validación prolongada | 9 |
@@ -69,7 +77,7 @@ public:
 ## Uso desde un proyecto PlatformIO
 
 ```ini
-lib_deps = https://github.com/<owner>/stm32f4-usart9.git#v0.1.0
+lib_deps = https://github.com/jgispert/stm32f4-usart9.git#v0.1.0
 ```
 
 Para desarrollar la librería en local, en el `platformio_local.ini` del proyecto:

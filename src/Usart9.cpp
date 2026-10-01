@@ -168,7 +168,8 @@ uint8_t Usart9::flushRx() {
     // Con RXNE u ORE, la secuencia SR→DR deja el receptor limpio.
     // FE/NE sin RXNE no ocurren en F4 (se activan junto con RXNE).
     while (_usart->SR & (USART_SR_RXNE | USART_SR_ORE)) {
-        (void)_usart->DR;
+        const uint32_t discard = _usart->DR;   // lectura explícita: limpia RXNE/ORE/FE/NE
+        (void)discard;
         if (n < 255) n++;
     }
     return n;

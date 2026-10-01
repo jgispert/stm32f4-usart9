@@ -79,7 +79,7 @@ Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 ## Uso desde un proyecto PlatformIO
 
 ```ini
-lib_deps = https://github.com/jgispert/stm32f4-usart9.git#v0.1.0
+lib_deps = https://github.com/jgispert/stm32f4-usart9.git#v0.2.0
 ```
 
 Para desarrollar la librería en local, en el `platformio_local.ini` del proyecto:

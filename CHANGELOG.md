@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.2.0 — pendiente de validación (fase 1 de VENDO_SLAVE_RS485)
+## 0.2.0 — 2026-10-01
+
+Validada en VENDO_SLAVE_RS485 fase 1 (RS485-010…013: 14/14 respuestas de la máquina recibidas sin errores, D8 correcto).
 
 - Recepción por polling: `rxAvailable()`, `readWord()`, `flushRx()`.
 - Las palabras recibidas llevan sus flags de error en los bits 12–14 (`FLAG_FE`, `FLAG_NE`, `FLAG_ORE`). Una palabra con error **se entrega igualmente**.

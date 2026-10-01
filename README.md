@@ -3,7 +3,7 @@
 USART de **9 bits de datos** a nivel de registro para **STM32F4** (probado en F411CEU6 Black Pill).
 Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (USART1).
 
-> Estado: **v0.2.0** en validación (recepción por polling). Última validada: v0.1.0.
+> Estado: **v0.2.0** (validada). TX y RX por polling. Siguiente: v0.3.0, RX por interrupción.
 
 ## Principios
 
@@ -72,7 +72,7 @@ Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 | Versión | Contenido | Fase VENDO |
 |---|---|---|
 | v0.1.0 | begin / TX ✅ | 0.5 |
-| v0.2.0 | RX por polling + flags de error (**en validación**) | 1 |
+| v0.2.0 | RX por polling + flags de error ✅ | 1 |
 | v0.3.0 | RX por ISR + callback de TC | 7 |
 | v1.0.0 | Estable tras validación prolongada | 9 |
 

@@ -142,3 +142,34 @@ void Usart9::writeWord(uint16_t word) {
 void Usart9::waitTxComplete() {
     while (!(_usart->SR & USART_SR_TC)) { }
 }
+
+// ── Recepción por polling ────────────────────────────────────────────────────
+
+bool Usart9::rxAvailable() const {
+    return _usart && (_usart->SR & (USART_SR_RXNE | USART_SR_ORE));
+}
+
+uint16_t Usart9::readWord() {
+    if (!_usart) return 0;
+    const uint32_t sr = _usart->SR;                  // 1) SR primero…
+    if (!(sr & (USART_SR_RXNE | USART_SR_ORE))) return 0;
+    const uint16_t dr = static_cast<uint16_t>(_usart->DR & WORD_MASK);   // 2) …luego DR: limpia flags
+
+    uint16_t w = dr;
+    if (sr & USART_SR_FE)  w |= FLAG_FE;
+    if (sr & USART_SR_NE)  w |= FLAG_NE;
+    if (sr & USART_SR_ORE) w |= FLAG_ORE;
+    return w;
+}
+
+uint8_t Usart9::flushRx() {
+    if (!_usart) return 0;
+    uint8_t n = 0;
+    // Con RXNE u ORE, la secuencia SR→DR deja el receptor limpio.
+    // FE/NE sin RXNE no ocurren en F4 (se activan junto con RXNE).
+    while (_usart->SR & (USART_SR_RXNE | USART_SR_ORE)) {
+        (void)_usart->DR;
+        if (n < 255) n++;
+    }
+    return n;
+}

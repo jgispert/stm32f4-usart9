@@ -1,6 +1,6 @@
 {
   "name": "stm32f4-usart9",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "USART de 9 bits a nivel de registro para STM32F4 (USART1/2/6). Sólo CMSIS: sin Arduino, HAL, RS-485 ni USB.",
   "keywords": ["stm32", "stm32f4", "usart", "9bit", "mdb", "rs485"],
   "authors": [{ "name": "Joan Gispert", "url": "https://github.com/jgispert" }],

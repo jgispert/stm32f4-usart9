@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 — pendiente de validación (fase 1 de VENDO_SLAVE_RS485)
+
+- Recepción por polling: `rxAvailable()`, `readWord()`, `flushRx()`.
+- Las palabras recibidas llevan sus flags de error en los bits 12–14 (`FLAG_FE`, `FLAG_NE`, `FLAG_ORE`). Una palabra con error **se entrega igualmente**.
+- Utilidades: `hasError()`, `dataOf()`, `bit9Of()`.
+
 ## 0.1.0 — 2026-10-01
 
 Validada en VENDO_SLAVE_RS485 fase 0.5 (RS485-005, 006 y 007: BRR idéntico, regresión TX en máquina real y compilación de los ejemplos).

@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.1.0 — pendiente de validación (fase 0.5 de VENDO_SLAVE_RS485)
+## 0.1.0 — 2026-10-01
+
+Validada en VENDO_SLAVE_RS485 fase 0.5 (RS485-005, 006 y 007: BRR idéntico, regresión TX en máquina real y compilación de los ejemplos).
 
 - `Usart9Config`: instancia (USART1/2/6), puerto, pines, AF, baudrate y pull-up de RX.
 - `begin()`: reloj GPIO + USART, pines en AF, 9 bits, sin paridad, 1 stop, x16. BRR redondeado al más cercano. El bus APB (APB1/APB2) se elige automáticamente.

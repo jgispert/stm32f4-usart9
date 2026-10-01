@@ -3,7 +3,7 @@
 USART de **9 bits de datos** a nivel de registro para **STM32F4** (probado en F411CEU6 Black Pill).
 Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (USART1).
 
-> Estado: **v0.1.0**. Configuración y transmisión. En validación en la fase 0.5 de VENDO_SLAVE_RS485.
+> Estado: **v0.1.0** (validada). Configuración y transmisión. Siguiente: v0.2.0, recepción por polling.
 
 ## Principios
 

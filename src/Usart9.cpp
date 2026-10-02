@@ -174,3 +174,87 @@ uint8_t Usart9::flushRx() {
     }
     return n;
 }
+
+// ── Modo por interrupciones (v0.3.0) ─────────────────────────────────────────
+
+void Usart9::enableIrq(IRQn_Type irq, uint32_t priority, RxEvent* ring, uint16_t size, TimeFn now) {
+    if (!_usart || !ring || size < 2 || (size & (size - 1)) != 0) return;
+    _ring = ring;
+    _mask = static_cast<uint16_t>(size - 1);
+    _now  = now;
+    _head = _tail = 0;
+    _lost = false;
+    flushRx();
+    NVIC_SetPriority(irq, priority);
+    NVIC_EnableIRQ(irq);
+    _usart->CR1 |= USART_CR1_RXNEIE;            // RXNE y ORE generan interrupción
+}
+
+bool Usart9::rxPop(RxEvent& e) {
+    const uint16_t t = _tail;
+    if (t == _head) return false;
+    e = _ring[t & _mask];
+    _tail = static_cast<uint16_t>(t + 1);
+    return true;
+}
+
+bool Usart9::txStart(const uint16_t* words, uint16_t n, DoneFn onDone, void* ctx) {
+    if (!_usart || _txBusy || n == 0) return false;
+    _txBuf  = words;
+    _txLen  = n;
+    _txIdx  = 0;
+    _txDone = onDone;
+    _txCtx  = ctx;
+    _txBusy = true;
+    _usart->SR = ~USART_SR_TC;                  // TC es rc_w0: escribir 0 lo borra
+    _usart->CR1 |= USART_CR1_TXEIE;             // La ISR escribe las palabras
+    return true;
+}
+
+void Usart9::txAbort() {
+    if (!_usart) return;
+    _usart->CR1 &= ~(USART_CR1_TXEIE | USART_CR1_TCIE);
+    _txBusy = false;
+    _txDone = nullptr;
+}
+
+void Usart9::irqHandler() {
+    if (!_usart) return;
+    const uint32_t sr  = _usart->SR;
+    const uint32_t cr1 = _usart->CR1;
+
+    // ── Recepción ─────────────────────────────────────────────────────────
+    if ((cr1 & USART_CR1_RXNEIE) && (sr & (USART_SR_RXNE | USART_SR_ORE))) {
+        uint16_t w = static_cast<uint16_t>(_usart->DR & WORD_MASK);   // SR→DR: limpia flags
+        if (sr & USART_SR_FE)  w |= FLAG_FE;
+        if (sr & USART_SR_NE)  w |= FLAG_NE;
+        if (sr & USART_SR_ORE) w |= FLAG_ORE;
+        if (!_mute && _ring) {
+            const uint16_t h = _head;
+            if (static_cast<uint16_t>(h - _tail) > _mask) {            // lleno
+                _lost = true;
+                _overflows = _overflows + 1;
+            } else {
+                if (_lost) { w |= FLAG_ORE; _lost = false; }
+                _ring[h & _mask].word = w;
+                _ring[h & _mask].t    = _now ? _now() : 0;
+                _head = static_cast<uint16_t>(h + 1);
+            }
+        }
+    }
+
+    // ── Transmisión ───────────────────────────────────────────────────────
+    if ((cr1 & USART_CR1_TXEIE) && (sr & USART_SR_TXE)) {
+        if (_txIdx < _txLen) {
+            _usart->DR = (_txBuf[_txIdx] & WORD_MASK);
+            _txIdx = static_cast<uint16_t>(_txIdx + 1);
+        }
+        if (_txIdx >= _txLen) {                  // Última palabra ya en DR
+            _usart->CR1 = (_usart->CR1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
+        }
+    } else if ((cr1 & USART_CR1_TCIE) && (sr & USART_SR_TC)) {
+        _usart->CR1 &= ~USART_CR1_TCIE;          // Último stop bit fuera
+        _txBusy = false;
+        if (_txDone) _txDone(_txCtx);
+    }
+}

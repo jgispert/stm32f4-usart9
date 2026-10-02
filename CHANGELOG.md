@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 — en validación (VENDO_SLAVE_RS485 fase 7)
+
+- Modo por interrupciones, **opcional** (el polling de 0.2.0 no cambia):
+  - RX: `enableIrq()` con buffer circular de `RxEvent {word, t}` aportado por el llamante; `rxCount()`, `rxPop()`, `rxDiscard()`, `rxMute()`, `rxOverflows()`. Si el buffer se llena, la siguiente palabra guardada lleva `FLAG_ORE`.
+  - TX: `txStart()` asíncrona por TXE con aviso `onDone` desde la ISR al llegar TC (para bajar DE en ≈ 1 µs); `txBusy()`, `txAbort()`.
+  - `irqHandler()` y la macro `USART9_BIND_IRQ(handler, obj)`.
+- Requiere `-DHAL_UART_MODULE_ONLY` con STM32duino (vector USARTx_IRQHandler).
+
 ## 0.2.0 — 2026-10-01
 
 Validada en VENDO_SLAVE_RS485 fase 1 (RS485-010…013: 14/14 respuestas de la máquina recibidas sin errores, D8 correcto).

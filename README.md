@@ -3,7 +3,7 @@
 USART de **9 bits de datos** a nivel de registro para **STM32F4** (probado en F411CEU6 Black Pill).
 Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (USART1).
 
-> Estado: **v0.2.0** (validada). TX y RX por polling. Siguiente: v0.3.0, RX por interrupción.
+> Estado: **v0.2.0** (validada). **v0.3.0 en validación** (rama `v0.3-irq`): RX y TX por interrupción, opcional.
 
 ## Principios
 
@@ -61,9 +61,19 @@ bus.pclkHz();  bus.brr();  bus.baud();         // diagnóstico
 
 El reloj del bus se calcula igual que `HAL_RCC_GetPCLKxFreq()` (`SystemCoreClock >> APBPrescTable[PPREx]`), sin depender de la HAL.
 
-### Previsto
+### Modo por interrupciones *(v0.3.0, opcional)*
 
-- v0.3.0: RX por interrupción con ring buffer y callback de TC.
+| Función | Qué hace |
+|---|---|
+| `enableIrq(irq, prio, ring, size, now)` | Activa RXNEIE. Cada palabra recibida se guarda en `ring` (tamaño potencia de 2, lo aporta el llamante) con la hora de `now()` |
+| `rxCount()` / `rxPop(e)` / `rxDiscard()` | Leer el buffer desde el programa (un productor, un consumidor: sin desactivar interrupciones) |
+| `rxMute(bool)` | Descartar lo recibido (half-duplex con RE ligado a DE) |
+| `rxOverflows()` | Palabras perdidas por buffer lleno; la siguiente guardada lleva `FLAG_ORE` |
+| `txStart(words, n, onDone, ctx)` | TX sin bloquear por TXE; `onDone` se llama **desde la ISR** al salir el último stop bit (TC) |
+| `txBusy()` / `txAbort()` | Estado / cancelar |
+| `irqHandler()` + `USART9_BIND_IRQ(USART2_IRQHandler, obj)` | Conectar el vector de interrupción |
+
+Con STM32duino hay que compilar con `-DHAL_UART_MODULE_ONLY` para que el core no defina sus propios `USARTx_IRQHandler`. El modo polling (v0.2.0) sigue disponible y no necesita nada de esto.
 
 Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 
@@ -73,7 +83,7 @@ Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 |---|---|---|
 | v0.1.0 | begin / TX ✅ | 0.5 |
 | v0.2.0 | RX por polling + flags de error ✅ | 1 |
-| v0.3.0 | RX por ISR + callback de TC | 7 |
+| v0.3.0 | RX por ISR + callback de TC (en validación) | 7 |
 | v1.0.0 | Estable tras validación prolongada | 9 |
 
 ## Uso desde un proyecto PlatformIO

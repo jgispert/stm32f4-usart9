@@ -51,6 +51,10 @@
 
 #define USART9_VERSION "0.3.0"
 
+/// Barrera de compilador: impide reordenar accesos a memoria a través de
+/// ella (el buffer circular no es volatile; los índices sí).
+#define USART9_BARRIER() __asm volatile("" ::: "memory")
+
 // ── Configuración ────────────────────────────────────────────────────────────
 struct Usart9Config {
     USART_TypeDef* instance;   // USART1 | USART2 | USART6

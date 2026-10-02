@@ -193,13 +193,16 @@ void Usart9::enableIrq(IRQn_Type irq, uint32_t priority, RxEvent* ring, uint16_t
 bool Usart9::rxPop(RxEvent& e) {
     const uint16_t t = _tail;
     if (t == _head) return false;
+    USART9_BARRIER();                           // Leer la casilla DESPUÉS de ver _head
     e = _ring[t & _mask];
+    USART9_BARRIER();                           // y liberarla DESPUÉS de copiarla
     _tail = static_cast<uint16_t>(t + 1);
     return true;
 }
 
 bool Usart9::txStart(const uint16_t* words, uint16_t n, DoneFn onDone, void* ctx) {
     if (!_usart || _txBusy || n == 0) return false;
+    USART9_BARRIER();                           // `words` escrito antes de que lo lea la ISR
     _txBuf  = words;
     _txLen  = n;
     _txIdx  = 0;
@@ -238,6 +241,7 @@ void Usart9::irqHandler() {
                 if (_lost) { w |= FLAG_ORE; _lost = false; }
                 _ring[h & _mask].word = w;
                 _ring[h & _mask].t    = _now ? _now() : 0;
+                USART9_BARRIER();
                 _head = static_cast<uint16_t>(h + 1);
             }
         }

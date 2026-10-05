@@ -3,7 +3,7 @@
 USART de **9 bits de datos** a nivel de registro para **STM32F4** (probado en F411CEU6 Black Pill).
 Es la pieza común de los firmwares **VENDO_SLAVE_RS485** (USART2) y **MDB** (USART1).
 
-> Estado: **v0.2.0** (validada). **v0.3.0 en validación** (rama `v0.3-irq`): RX y TX por interrupción, opcional.
+> Estado: **v0.3.0** (validada): polling de v0.2.0 sin cambios + modo por interrupciones opcional (RX y TX).
 
 ## Principios
 
@@ -83,13 +83,13 @@ Ejemplos en `examples/`: MDB (USART1, 9600) y RS-485 Vendo (USART2, 19200).
 |---|---|---|
 | v0.1.0 | begin / TX ✅ | 0.5 |
 | v0.2.0 | RX por polling + flags de error ✅ | 1 |
-| v0.3.0 | RX por ISR + callback de TC (en validación) | 7 |
+| v0.3.0 | RX por ISR + callback de TC ✅ | 7 |
 | v1.0.0 | Estable tras validación prolongada | 9 |
 
 ## Uso desde un proyecto PlatformIO
 
 ```ini
-lib_deps = https://github.com/jgispert/stm32f4-usart9.git#v0.2.0
+lib_deps = https://github.com/jgispert/stm32f4-usart9.git#v0.3.0
 ```
 
 Para desarrollar la librería en local, en el `platformio_local.ini` del proyecto:
